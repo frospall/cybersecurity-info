@@ -14,6 +14,7 @@
             <h1 class="glitch" data-text="SYSTEM COMPROMISED?">SYSTEM COMPROMISED?</h1>
         </div>
         <p class="subtitle">Discover what your digital footprint reveals.</p>
+        <input type="text" id="target-name" placeholder="ENTER IDENTIFIER (NAME)" class="cyber-input" autocomplete="off">
         <button id="start-btn" class="cyber-btn">INITIATE SCAN</button>
     </div>
 
@@ -48,7 +49,10 @@
                 </div>
             </div>
         </div>
-        <button id="restart-btn" class="cyber-btn" style="margin-top: 30px;">REBOOT SYSTEM</button>
+        <div style="display: flex; gap: 15px; margin-top: 30px; justify-content: center;">
+            <button id="download-btn" class="cyber-btn" style="border-color: var(--info-color); color: var(--info-color); text-shadow: 0 0 5px var(--info-color); box-shadow: 0 0 10px rgba(0, 229, 255, 0.2), inset 0 0 10px rgba(0, 229, 255, 0.1);">DOWNLOAD LOG</button>
+            <button id="restart-btn" class="cyber-btn">REBOOT SYSTEM</button>
+        </div>
     </div>
 
     <script src="script.js"></script>

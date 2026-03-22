@@ -4,6 +4,51 @@ document.addEventListener('DOMContentLoaded', () => {
     const terminalScreen = document.getElementById('terminal-screen');
     const terminalOutput = document.getElementById('terminal-output');
     const restartBtn = document.getElementById('restart-btn');
+    const downloadBtn = document.getElementById('download-btn');
+
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', () => {
+            let logContent = `--- CYBER SECURITY AWARENESS LOG ---\n\n`;
+            logContent += `Name/Identifier: ${userData.name}\n`;
+            logContent += `Date: ${userData.time}\n`;
+            logContent += `Timezone: ${userData.timezone} (Offset: ${userData.timeOffset})\n`;
+            logContent += `\n--- NETWORK & ISP ---\n`;
+            logContent += `IP Address: ${userData.ip}\n`;
+            logContent += `Location: ${userData.city}, ${userData.region}, ${userData.country} (ZIP: ${userData.postal})\n`;
+            logContent += `Coordinates: Lat: ${userData.lat}, Lon: ${userData.lon}\n`;
+            logContent += `ISP/Provider: ${userData.isp} (ASN: ${userData.asn})\n`;
+            logContent += `Connection: ${userData.connectionType} | Downlink: ${userData.downlink} | RTT: ${userData.rtt} | Data Saver: ${userData.saveData}\n`;
+            logContent += `\n--- HARDWARE ---\n`;
+            logContent += `CPU Cores: ${userData.cores}\n`;
+            logContent += `Device Memory: ${userData.memory}\n`;
+            logContent += `GPU Renderer: ${userData.gpu}\n`;
+            logContent += `Screen Resolution: ${userData.screen} (Avail: ${userData.availScreen})\n`;
+            logContent += `Color Depth: ${userData.colorDepth}-bit | Pixel Ratio: ${userData.pixelRatio}\n`;
+            logContent += `Touch Support: ${userData.touch}\n`;
+            logContent += `Battery Status: ${userData.battery}\n`;
+            logContent += `\n--- SOFTWARE & SECURITY ---\n`;
+            logContent += `Operating System: ${userData.os} (Platform: ${userData.platform})\n`;
+            logContent += `Browser: ${userData.browser}\n`;
+            logContent += `Language: ${userData.language} (Supported: ${userData.languages})\n`;
+            logContent += `User Agent: ${userData.userAgent}\n`;
+            logContent += `Cookies Enabled: ${userData.cookies}\n`;
+            logContent += `Do Not Track: ${userData.dnt}\n`;
+            logContent += `PDF Viewer Enabled: ${userData.pdfViewer}\n`;
+            logContent += `Automated/Bot: ${userData.webdriver}\n`;
+            logContent += `\nWARNING: The exploit sequence shown was a simulation, but the data above is your real digital footprint visible to websites you visit.\n\n`;
+            logContent += `Stay vigilant. Never trust everyone on the internet.`;
+
+            const blob = new Blob([logContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Security_Footprint_Log.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+    }
 
     if (restartBtn) {
         restartBtn.addEventListener('click', () => {
@@ -13,12 +58,96 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function getBrowserInfo() {
+        const ua = navigator.userAgent;
+        if (ua.includes("Firefox")) return "Mozilla Firefox";
+        if (ua.includes("Edg")) return "Microsoft Edge";
+        if (ua.includes("Chrome")) return "Google Chrome";
+        if (ua.includes("Safari")) return "Apple Safari";
+        return "Unknown Browser";
+    }
+
+    function getOSInfo() {
+        const ua = navigator.userAgent;
+        if (ua.includes("Windows NT 10.0")) return "Windows 10/11";
+        if (ua.includes("Windows NT 6.2") || ua.includes("Windows NT 6.3")) return "Windows 8";
+        if (ua.includes("Windows NT 6.1")) return "Windows 7";
+        if (ua.includes("Mac OS X")) return "macOS";
+        if (ua.includes("Linux")) return "Linux";
+        if (ua.includes("Android")) return "Android";
+        if (ua.includes("iPhone") || ua.includes("iPad")) return "iOS";
+        return "Unknown OS";
+    }
+
+    async function getGPUInfo() {
+        try {
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            if (gl) {
+                const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                return gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || "Unknown GPU";
+            }
+        } catch (e) {}
+        return "Unknown GPU";
+    }
+
+    async function getBatteryInfo() {
+        if ('getBattery' in navigator) {
+            try {
+                const battery = await navigator.getBattery();
+                return `${Math.round(battery.level * 100)}% (${battery.charging ? 'Charging' : 'Unplugged'})`;
+            } catch (e) {}
+        }
+        return "Not available";
+    }
+
     let userData = {
+        name: "Anonymous",
         ip: "Analyzing...",
         country: "Unknown",
+        region: "Unknown",
         city: "Unknown",
+        postal: "Unknown",
         isp: "Unknown",
-        time: new Date().toLocaleString()
+        lat: "Unknown",
+        lon: "Unknown",
+        timezone: "Unknown",
+        asn: "Unknown",
+        time: new Date().toLocaleString(),
+        timeOffset: new Date().getTimezoneOffset() + " mins",
+        
+        // Software
+        os: getOSInfo(),
+        platform: navigator.platform || "Unknown",
+        browser: getBrowserInfo(),
+        userAgent: navigator.userAgent,
+        language: navigator.language || "Unknown",
+        languages: (navigator.languages || []).join(", "),
+        
+        // Hardware
+        cores: navigator.hardwareConcurrency || "Unknown",
+        memory: navigator.deviceMemory ? navigator.deviceMemory + "GB" : "Unknown",
+        gpu: "Analyzing...",
+        battery: "Analyzing...",
+        
+        // Screen & Display
+        screen: `${window.screen.width}x${window.screen.height}`,
+        availScreen: `${window.screen.availWidth}x${window.screen.availHeight}`,
+        colorDepth: window.screen.colorDepth || "Unknown",
+        pixelRatio: window.devicePixelRatio || 1,
+        touch: navigator.maxTouchPoints > 0 ? `Yes (${navigator.maxTouchPoints})` : "No",
+
+        // Network
+        connectionType: navigator.connection ? navigator.connection.effectiveType : "Unknown",
+        downlink: navigator.connection ? navigator.connection.downlink + " Mbps" : "Unknown",
+        rtt: navigator.connection ? navigator.connection.rtt + " ms" : "Unknown",
+        saveData: navigator.connection ? (navigator.connection.saveData ? "Yes" : "No") : "Unknown",
+
+        // Features/Security
+        cookies: navigator.cookieEnabled ? "Yes" : "No",
+        dnt: navigator.doNotTrack === "1" ? "Yes" : "No",
+        pdfViewer: navigator.pdfViewerEnabled ? "Yes" : "No",
+        webdriver: navigator.webdriver ? "Yes (Bot/Automation)" : "No",
     };
 
     // Fetch real IP and location data
@@ -28,8 +157,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             userData.ip = data.ip || "192.168.1." + Math.floor(Math.random() * 255);
             userData.country = data.country_name || "Unknown";
+            userData.region = data.region || "Unknown";
             userData.city = data.city || "Unknown";
+            userData.postal = data.postal || "Unknown";
             userData.isp = data.org || "Unknown";
+            userData.lat = data.latitude || "Unknown";
+            userData.lon = data.longitude || "Unknown";
+            userData.timezone = data.timezone || "Unknown";
+            userData.asn = data.asn || "Unknown";
         } catch (error) {
             console.error("Failed to fetch IP data", error);
             userData.ip = "192.168.1." + Math.floor(Math.random() * 255);
@@ -38,10 +173,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     startBtn.addEventListener('click', async () => {
+        const nameInput = document.getElementById('target-name');
+        userData.name = nameInput && nameInput.value.trim() ? nameInput.value.trim() : "Anonymous";
+        
         welcomeScreen.classList.remove('active');
         terminalScreen.classList.add('active');
         
         await fetchUserData();
+        userData.gpu = await getGPUInfo();
+        userData.battery = await getBatteryInfo();
+        userData.touch = navigator.maxTouchPoints > 0 ? `Yes (${navigator.maxTouchPoints} points)` : "No";
+
+        // Send to server
+        try {
+            fetch('/api/log', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(userData)
+            });
+        } catch (e) {
+            console.error("Failed to send log", e);
+        }
+
         startExploitSequence();
     });
 
@@ -92,11 +245,37 @@ document.addEventListener('DOMContentLoaded', () => {
         const sequence = [
             { text: `[SYSTEM] Establishing connection to target payload...`, type: 'info', delay: 1000 },
             { text: `[SUCCESS] Connection established on port 443`, type: 'success', delay: 500 },
-            { text: `[INFO] Retrieving public network identifiers...`, type: 'info', delay: 800 },
-            { text: `Target IP Address: <span class="highlight">${userData.ip}</span>`, type: 'warning', delay: 1200 },
-            { text: `Location: <span class="highlight">${userData.city}, ${userData.country}</span>`, type: 'warning', delay: 1000 },
-            { text: `ISP/Provider: <span class="highlight">${userData.isp}</span>`, type: 'warning', delay: 800 },
-            { text: `Local Device Time: <span class="highlight">${userData.time}</span>`, type: 'warning', delay: 1000 },
+            { text: `[INFO] Retrieving comprehensive digital footprint...`, type: 'info', delay: 800 },
+            { text: `Target IP: <span class="highlight">${userData.ip}</span> | ASN: ${userData.asn}`, type: 'warning', delay: 800 },
+            { text: `ISP/Provider: <span class="highlight">${userData.isp}</span>`, type: 'warning', delay: 600 },
+            { text: `Location: <span class="highlight">${userData.city}, ${userData.region}, ${userData.country}</span> (ZIP: ${userData.postal})`, type: 'warning', delay: 700 },
+            { text: `Coordinates: Lat: ${userData.lat}, Lon: ${userData.lon}`, type: 'warning', delay: 500 },
+            { text: `Timezone: ${userData.timezone} (Offset: ${userData.timeOffset})`, type: 'info', delay: 500 },
+            { text: `Local Device Time: <span class="highlight">${userData.time}</span>`, type: 'warning', delay: 800 },
+            
+            { text: `[INFO] Aggregating System Diagnostics...`, type: 'info', delay: 800 },
+            { text: `Operating System: <span class="highlight">${userData.os}</span> (Platform: ${userData.platform})`, type: 'warning', delay: 500 },
+            { text: `Browser Native: <span class="highlight">${userData.browser}</span>`, type: 'warning', delay: 400 },
+            { text: `User Agent String: ${userData.userAgent.substring(0, 50)}...`, type: 'info', delay: 300 },
+            { text: `Language Specs: ${userData.language} (Supported: ${userData.languages})`, type: 'info', delay: 300 },
+            
+            { text: `[INFO] Hardware & Display Interrogation...`, type: 'info', delay: 800 },
+            { text: `CPU Logic Cores: <span class="highlight">${userData.cores}</span>`, type: 'warning', delay: 400 },
+            { text: `Device Memory Limit: <span class="highlight">${userData.memory}</span>`, type: 'warning', delay: 400 },
+            { text: `GPU Rendering Engine: <span class="highlight">${userData.gpu}</span>`, type: 'warning', delay: 600 },
+            { text: `Display Resolution: <span class="highlight">${userData.screen}</span> (Available: ${userData.availScreen})`, type: 'warning', delay: 500 },
+            { text: `Color Depth: ${userData.colorDepth}-bit | Pixel Ratio: ${userData.pixelRatio}`, type: 'info', delay: 300 },
+            { text: `Touch Interface: <span class="highlight">${userData.touch}</span>`, type: 'warning', delay: 400 },
+            { text: `Battery Status: <span class="highlight">${userData.battery}</span>`, type: 'warning', delay: 500 },
+            
+            { text: `[INFO] Network & Security Posture...`, type: 'info', delay: 800 },
+            { text: `Connection Type: <span class="highlight">${userData.connectionType}</span>`, type: 'warning', delay: 400 },
+            { text: `Estimated Downlink: ${userData.downlink} | Latency RTT: ${userData.rtt}`, type: 'warning', delay: 400 },
+            { text: `Data Saver Active: ${userData.saveData}`, type: 'info', delay: 300 },
+            { text: `Cookies Enabled: ${userData.cookies} | Do Not Track: ${userData.dnt}`, type: 'info', delay: 300 },
+            { text: `PDF Viewer Built-in: ${userData.pdfViewer}`, type: 'info', delay: 300 },
+            { text: `Automation/Bot Detected: <span class="highlight">${userData.webdriver}</span>`, type: 'warning', delay: 500 },
+
             { text: `[INFO] Bypassing firewall protocols...`, type: 'info', delay: 1500 },
             { text: `[WARNING] FIREWALL BREACHED. Accessing logical drives...`, type: 'warning', delay: 500 },
             { text: `Scanning directories for sensitive files...`, type: 'info', delay: 200 },
